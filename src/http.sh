@@ -40,3 +40,14 @@ btproxy_http_post_auth() {
   printf '\n'
   return "$status"
 }
+
+btproxy_http_get_plain() {
+  local url; url="$1"
+  curl -sS "$url"
+}
+
+btproxy_http_get_auth_plain() {
+  local url; url="$1"
+  local token; token="${BTPROXY_SECRET:-${BTPROXY_TOKEN:-secret}}"
+  curl -sS -H "X-BtProxy: $token" "$url"
+}
