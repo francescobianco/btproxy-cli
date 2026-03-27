@@ -164,6 +164,47 @@ paths:
         "500":
           $ref: "#/components/responses/InternalServerError"
 
+  /devices/{macAddress}/characteristics:
+    get:
+      summary: List GATT characteristics
+      description: >
+        Returns all GATT services and characteristics discovered on a connected BLE device,
+        including the UUID and supported properties of each characteristic
+        (READ, WRITE, WRITE_NO_RESPONSE, NOTIFY, INDICATE, BROADCAST, SIGNED_WRITE).
+      operationId: listCharacteristics
+      tags: [Authenticated]
+      security:
+        - BtProxyToken: []
+      parameters:
+        - name: macAddress
+          in: path
+          required: true
+          description: MAC address of the BLE device (colon-separated, e.g. `AA:BB:CC:DD:EE:FF`)
+          schema:
+            type: string
+            example: "AA:BB:CC:DD:EE:FF"
+      responses:
+        "200":
+          description: >
+            Plain-text listing of services and characteristics.
+            Each service line is followed by its characteristics indented with two spaces.
+          content:
+            text/plain:
+              schema:
+                type: string
+              example: |
+                service: 0000180d-0000-1000-8000-00805f9b34fb
+                  characteristic: 00002a37-0000-1000-8000-00805f9b34fb properties: NOTIFY READ
+                  characteristic: 00002a38-0000-1000-8000-00805f9b34fb properties: READ
+                service: 00001800-0000-1000-8000-00805f9b34fb
+                  characteristic: 00002a00-0000-1000-8000-00805f9b34fb properties: READ WRITE
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+
   /{macAddress}/{characteristicUuid}:
     get:
       summary: Read BLE characteristic

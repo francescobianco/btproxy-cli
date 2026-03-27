@@ -12,7 +12,10 @@ btproxy_http_get() {
   local url; url="$1"
   local debug; debug="${2:-0}"
   local flags; flags=$(_btproxy_http_curl_flags "$debug")
-  curl $flags "$url" 2>&1
+  local status; status=0
+  curl $flags "$url" 2>&1 || status=$?
+  printf '\n'
+  return "$status"
 }
 
 btproxy_http_get_auth() {
@@ -20,7 +23,10 @@ btproxy_http_get_auth() {
   local debug; debug="${2:-0}"
   local token; token="${BTPROXY_SECRET:-${BTPROXY_TOKEN:-secret}}"
   local flags; flags=$(_btproxy_http_curl_flags "$debug")
-  curl $flags -H "X-BtProxy: $token" "$url" 2>&1
+  local status; status=0
+  curl $flags -H "X-BtProxy: $token" "$url" 2>&1 || status=$?
+  printf '\n'
+  return "$status"
 }
 
 btproxy_http_post_auth() {
@@ -29,5 +35,8 @@ btproxy_http_post_auth() {
   local debug; debug="${3:-0}"
   local token; token="${BTPROXY_SECRET:-${BTPROXY_TOKEN:-secret}}"
   local flags; flags=$(_btproxy_http_curl_flags "$debug")
-  curl $flags -X POST -H "X-BtProxy: $token" -H "Content-Type: text/plain" --data "$body" "$url" 2>&1
+  local status; status=0
+  curl $flags -X POST -H "X-BtProxy: $token" -H "Content-Type: text/plain" --data "$body" "$url" 2>&1 || status=$?
+  printf '\n'
+  return "$status"
 }
