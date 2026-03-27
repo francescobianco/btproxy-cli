@@ -13,7 +13,7 @@ set -e
 # @file_type: build-entrypoint
 # @build_type: bin
 # @build_with: Mush v0.2.0 (2026-03-22 develop)
-# @build_date: 2026-03-27T16:11:10Z
+# @build_date: 2026-03-27T16:26:07Z
 
 # @section_code: SC005
 # @section_name: functions
@@ -31,10 +31,136 @@ inject() { return 0; }
 # @source_file: src/main.sh
 # @portion_type: entrypoint
 
+module http
+
 main() {
-  echo "Hello World!"
+  local base_url; base_url="${BTPROXY_URL:-}"
+
+  if [ -z "$base_url" ]; then
+    echo "ERROR: BTPROXY_URL is not set" >&2
+    echo "  e.g. export BTPROXY_URL=http://192.168.1.1:8080" >&2
+    exit 1
+  fi
+
+  local debug; debug=0
+  if [ "${1:-}" = "--debug" ]; then
+    debug=1
+    shift
+  fi
+
+  local cmd; cmd="${1:-}"
+  shift || true
+
+  case "$cmd" in
+    ping)
+      btproxy_http_get "$base_url/ping" "$debug"
+      ;;
+    health)
+      btproxy_http_get "$base_url/health" "$debug"
+      ;;
+    status)
+      btproxy_http_get "$base_url/status" "$debug"
+      ;;
+    list)
+      btproxy_http_get "$base_url/devices" "$debug"
+      ;;
+    read)
+      local mac; mac="${1:-}"
+      local uuid; uuid="${2:-}"
+      if [ -z "$mac" ] || [ -z "$uuid" ]; then
+        echo "Usage: btproxy read <mac> <uuid>" >&2
+        exit 1
+      fi
+      btproxy_http_get_auth "$base_url/$mac/$uuid" "$debug"
+      ;;
+    write)
+      local mac; mac="${1:-}"
+      local uuid; uuid="${2:-}"
+      if [ -z "$mac" ] || [ -z "$uuid" ]; then
+        echo "Usage: btproxy write <mac> <uuid> <hex bytes...>" >&2
+        exit 1
+      fi
+      shift 2
+      local body; body="$*"
+      if [ -z "$body" ]; then
+        echo "Usage: btproxy write <mac> <uuid> <hex bytes...>" >&2
+        echo "  e.g. btproxy write AA:BB:CC:DD:EE:FF 00002a37-0000-1000-8000-00805f9b34fb A0 81 D0" >&2
+        exit 1
+      fi
+      btproxy_http_post_auth "$base_url/$mac/$uuid" "$body" "$debug"
+      ;;
+    ""|help|--help|-h)
+      echo "btproxy - CLI for the BTProxy Android app"
+      echo ""
+      echo "Usage: btproxy [--debug] <command> [args...]"
+      echo ""
+      echo "Commands:"
+      echo "  ping                          Liveness check (no auth)"
+      echo "  health                        Health status and connected device count"
+      echo "  status                        Server status with connected MAC addresses"
+      echo "  list                          List connected BLE device MAC addresses"
+      echo "  read  <mac> <uuid>            Read a BLE GATT characteristic"
+      echo "  write <mac> <uuid> <hex...>   Write a BLE GATT characteristic"
+      echo ""
+      echo "Environment:"
+      echo "  BTPROXY_URL    Base URL of the BTProxy server (required)"
+      echo "                 e.g. export BTPROXY_URL=http://192.168.144.7:8080"
+      echo "  BTPROXY_SECRET Auth token for authenticated commands (default: secret)"
+      echo "  BTPROXY_TOKEN  Auth token fallback if BTPROXY_SECRET is not set"
+      echo ""
+      echo "Options:"
+      echo "  --debug        Show full HTTP request/response payload"
+      echo ""
+      echo "Examples:"
+      echo "  btproxy list"
+      echo "  btproxy read AA:BB:CC:DD:EE:FF 00002a37-0000-1000-8000-00805f9b34fb"
+      echo "  btproxy write AA:BB:CC:DD:EE:FF 00002a37-0000-1000-8000-00805f9b34fb A0 81 D0"
+      ;;
+    *)
+      echo "ERROR: unknown command '$cmd'" >&2
+      echo "Run 'btproxy help' for usage." >&2
+      exit 1
+      ;;
+  esac
+}
+# @section_code: SC007
+# @section_name: source
+# @source_index: 2
+# @source_file: src/http.sh
+# @portion_type: module
+
+_btproxy_http_curl_flags() {
+  local debug; debug="${1:-0}"
+  if [ "$debug" = "1" ]; then
+    echo "-v"
+  else
+    echo "-s"
+  fi
 }
 
+btproxy_http_get() {
+  local url; url="$1"
+  local debug; debug="${2:-0}"
+  local flags; flags=$(_btproxy_http_curl_flags "$debug")
+  curl $flags "$url" 2>&1
+}
+
+btproxy_http_get_auth() {
+  local url; url="$1"
+  local debug; debug="${2:-0}"
+  local token; token="${BTPROXY_SECRET:-${BTPROXY_TOKEN:-secret}}"
+  local flags; flags=$(_btproxy_http_curl_flags "$debug")
+  curl $flags -H "X-BtProxy: $token" "$url" 2>&1
+}
+
+btproxy_http_post_auth() {
+  local url; url="$1"
+  local body; body="$2"
+  local debug; debug="${3:-0}"
+  local token; token="${BTPROXY_SECRET:-${BTPROXY_TOKEN:-secret}}"
+  local flags; flags=$(_btproxy_http_curl_flags "$debug")
+  curl $flags -X POST -H "X-BtProxy: $token" -H "Content-Type: text/plain" --data "$body" "$url" 2>&1
+}
 # @section_code: SC006
 # @section_name: entrypoint
 main "$@"

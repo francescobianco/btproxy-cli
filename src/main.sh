@@ -10,21 +10,27 @@ main() {
     exit 1
   fi
 
+  local debug; debug=0
+  if [ "${1:-}" = "--debug" ]; then
+    debug=1
+    shift
+  fi
+
   local cmd; cmd="${1:-}"
   shift || true
 
   case "$cmd" in
     ping)
-      btproxy_http_get "$base_url/ping"
+      btproxy_http_get "$base_url/ping" "$debug"
       ;;
     health)
-      btproxy_http_get "$base_url/health"
+      btproxy_http_get "$base_url/health" "$debug"
       ;;
     status)
-      btproxy_http_get "$base_url/status"
+      btproxy_http_get "$base_url/status" "$debug"
       ;;
     list)
-      btproxy_http_get "$base_url/devices"
+      btproxy_http_get "$base_url/devices" "$debug"
       ;;
     read)
       local mac; mac="${1:-}"
@@ -33,7 +39,7 @@ main() {
         echo "Usage: btproxy read <mac> <uuid>" >&2
         exit 1
       fi
-      btproxy_http_get_auth "$base_url/$mac/$uuid"
+      btproxy_http_get_auth "$base_url/$mac/$uuid" "$debug"
       ;;
     write)
       local mac; mac="${1:-}"
@@ -49,12 +55,12 @@ main() {
         echo "  e.g. btproxy write AA:BB:CC:DD:EE:FF 00002a37-0000-1000-8000-00805f9b34fb A0 81 D0" >&2
         exit 1
       fi
-      btproxy_http_post_auth "$base_url/$mac/$uuid" "$body"
+      btproxy_http_post_auth "$base_url/$mac/$uuid" "$body" "$debug"
       ;;
     ""|help|--help|-h)
       echo "btproxy - CLI for the BTProxy Android app"
       echo ""
-      echo "Usage: btproxy <command> [args...]"
+      echo "Usage: btproxy [--debug] <command> [args...]"
       echo ""
       echo "Commands:"
       echo "  ping                          Liveness check (no auth)"
@@ -67,7 +73,11 @@ main() {
       echo "Environment:"
       echo "  BTPROXY_URL    Base URL of the BTProxy server (required)"
       echo "                 e.g. export BTPROXY_URL=http://192.168.144.7:8080"
-      echo "  BTPROXY_TOKEN  Auth token for authenticated commands (default: secret)"
+      echo "  BTPROXY_SECRET Auth token for authenticated commands (default: secret)"
+      echo "  BTPROXY_TOKEN  Auth token fallback if BTPROXY_SECRET is not set"
+      echo ""
+      echo "Options:"
+      echo "  --debug        Show full HTTP request/response payload"
       echo ""
       echo "Examples:"
       echo "  btproxy list"
