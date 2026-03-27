@@ -13,7 +13,7 @@ set -e
 # @file_type: build-entrypoint
 # @build_type: bin
 # @build_with: Mush v0.2.0 (2026-03-22 develop)
-# @build_date: 2026-03-27T17:20:19Z
+# @build_date: 2026-03-27T17:47:53Z
 
 # @section_code: SC005
 # @section_name: functions
@@ -261,6 +261,84 @@ btproxy_hex_to_uint16_le() {
   printf '[%s]\n' "$out"
 }
 
+btproxy_json_get_string() {
+  local json; json=$(printf '%s' "$1" | tr -d '\n')
+  local key; key="$2"
+  printf '%s' "$json" | sed -n "s/.*\"$key\":\"\\([^\"]*\\)\".*/\\1/p"
+}
+
+btproxy_json_get_boolean() {
+  local json; json=$(printf '%s' "$1" | tr -d '\n')
+  local key; key="$2"
+  printf '%s' "$json" | sed -n "s/.*\"$key\":\\(true\\|false\\).*/\\1/p"
+}
+
+btproxy_json_get_number() {
+  local json; json=$(printf '%s' "$1" | tr -d '\n')
+  local key; key="$2"
+  printf '%s' "$json" | sed -n "s/.*\"$key\":\\([0-9][0-9]*\\).*/\\1/p"
+}
+
+btproxy_notify_print_payload() {
+  local payload; payload="$1"
+  local mode; mode="$2"
+
+  case "$mode" in
+    ascii)
+      btproxy_hex_to_ascii "$payload"
+      ;;
+    little-endian)
+      btproxy_hex_to_uint16_le "$payload"
+      ;;
+    *)
+      printf '%s\n' "$payload"
+      ;;
+  esac
+}
+
+btproxy_notify_stream() {
+  local base_url; base_url="$1"
+  local mac; mac="$2"
+  local uuid; uuid="$3"
+  local client_id; client_id="$4"
+  local wait_ms; wait_ms="$5"
+  local mode; mode="$6"
+
+  local subscribe_response
+  subscribe_response=$(btproxy_http_post_auth_json_plain \
+    "$base_url/$mac/$uuid/subscribe" \
+    "{\"clientId\":\"$client_id\"}") || return 1
+
+  case "$subscribe_response" in
+    \{*\})
+      ;;
+    *)
+      printf '%s\n' "$subscribe_response" >&2
+      return 1
+      ;;
+  esac
+
+  echo "Subscribed: mac=$mac uuid=$uuid clientId=$client_id waitMs=$wait_ms" >&2
+
+  trap "btproxy_http_delete_auth_plain \"$base_url/$mac/$uuid/subscribe?clientId=$client_id\" >/dev/null 2>&1" EXIT INT TERM
+
+  while true; do
+    local poll_response
+    poll_response=$(btproxy_http_get_auth_plain \
+      "$base_url/$mac/$uuid/poll?clientId=$client_id&waitMs=$wait_ms") || return 1
+
+    case "$(btproxy_json_get_boolean "$poll_response" "hasMessage")" in
+      true)
+        local payload
+        payload=$(btproxy_json_get_string "$poll_response" "payloadHex")
+        if [ -n "$payload" ]; then
+          btproxy_notify_print_payload "$payload" "$mode"
+        fi
+        ;;
+    esac
+  done
+}
+
 main() {
   btproxy_load_rc
 
@@ -378,6 +456,19 @@ main() {
       local uuid; uuid=$(btproxy_resolve_characteristic "$base_url" "$mac" "$uuid_input") || exit $?
       btproxy_http_post_auth "$base_url/$mac/$uuid" "$body" "$debug"
       ;;
+    n|notify)
+      local mac_input; mac_input="${1:-}"
+      local uuid_input; uuid_input="${2:-}"
+      local client_id; client_id="${3:-btproxy-cli-$$}"
+      local wait_ms; wait_ms="${4:-1000}"
+      if [ -z "$mac_input" ] || [ -z "$uuid_input" ]; then
+        echo "Usage: btproxy notify|n <mac-or-prefix> <uuid> [client-id] [wait-ms]" >&2
+        exit 1
+      fi
+      local mac; mac=$(btproxy_resolve_mac "$base_url" "$mac_input") || exit $?
+      local uuid; uuid=$(btproxy_resolve_characteristic "$base_url" "$mac" "$uuid_input") || exit $?
+      btproxy_notify_stream "$base_url" "$mac" "$uuid" "$client_id" "$wait_ms" "$output_mode"
+      ;;
     ""|help|--help|-h)
       echo "btproxy - CLI for the BTProxy Android app"
       echo ""
@@ -391,6 +482,7 @@ main() {
       echo "  characteristics|c <mac>       List GATT services and characteristics"
       echo "  read|r  <mac> <uuid>          Read a BLE GATT characteristic"
       echo "  write|w <mac> <uuid> <hex...> Write a BLE GATT characteristic"
+      echo "  notify|n <mac> <uuid>         Subscribe and stream BLE notifications"
       echo ""
       echo "Environment:"
       echo "  BTPROXY_URL    Base URL of the BTProxy server (required)"
@@ -407,6 +499,7 @@ main() {
       echo "  --debug        Show full HTTP request/response payload"
       echo "  --ascii        For read, decode hex bytes to ASCII text"
       echo "  --little-endian For read, decode bytes as uint16 little-endian"
+      echo "                 Also applies to notify payload output"
       echo ""
       echo "MAC Resolution:"
       echo "  For c/r/w, you can pass a MAC prefix instead of the full address."
@@ -424,6 +517,7 @@ main() {
       echo "  btproxy r a 2a00 --ascii"
       echo "  btproxy r a 2a00 --little-endian"
       echo "  btproxy w AA 00002a37-0000-1000-8000-00805f9b34fb A0 81 D0"
+      echo "  btproxy n a 2a37 hr-client 1000"
       ;;
     *)
       echo "ERROR: unknown command '$cmd'" >&2
@@ -553,6 +647,19 @@ btproxy_http_get_auth_plain() {
   local url; url="$1"
   local token; token="${BTPROXY_SECRET:-${BTPROXY_TOKEN:-secret}}"
   curl -sS -H "X-BtProxy: $token" "$url"
+}
+
+btproxy_http_post_auth_json_plain() {
+  local url; url="$1"
+  local body; body="$2"
+  local token; token="${BTPROXY_SECRET:-${BTPROXY_TOKEN:-secret}}"
+  curl -sS -X POST -H "X-BtProxy: $token" -H "Content-Type: application/json" --data "$body" "$url"
+}
+
+btproxy_http_delete_auth_plain() {
+  local url; url="$1"
+  local token; token="${BTPROXY_SECRET:-${BTPROXY_TOKEN:-secret}}"
+  curl -sS -X DELETE -H "X-BtProxy: $token" "$url"
 }
 
 # @section_code: SC006

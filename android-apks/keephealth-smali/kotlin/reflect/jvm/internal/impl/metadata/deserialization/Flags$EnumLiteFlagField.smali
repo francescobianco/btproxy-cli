@@ -1,0 +1,268 @@
+.class Lkotlin/reflect/jvm/internal/impl/metadata/deserialization/Flags$EnumLiteFlagField;
+.super Lkotlin/reflect/jvm/internal/impl/metadata/deserialization/Flags$FlagField;
+.source "Flags.java"
+
+
+# annotations
+.annotation system Ldalvik/annotation/EnclosingClass;
+    value = Lkotlin/reflect/jvm/internal/impl/metadata/deserialization/Flags;
+.end annotation
+
+.annotation system Ldalvik/annotation/InnerClass;
+    accessFlags = 0xa
+    name = "EnumLiteFlagField"
+.end annotation
+
+.annotation system Ldalvik/annotation/Signature;
+    value = {
+        "<E::",
+        "Lkotlin/reflect/jvm/internal/impl/protobuf/Internal$EnumLite;",
+        ">",
+        "Lkotlin/reflect/jvm/internal/impl/metadata/deserialization/Flags$FlagField<",
+        "TE;>;"
+    }
+.end annotation
+
+
+# instance fields
+.field private final values:[Lkotlin/reflect/jvm/internal/impl/protobuf/Internal$EnumLite;
+    .annotation system Ldalvik/annotation/Signature;
+        value = {
+            "[TE;"
+        }
+    .end annotation
+.end field
+
+
+# direct methods
+.method private static synthetic $$$reportNull$$$0(I)V
+    .registers 3
+
+    const-string p0, "kotlin/reflect/jvm/internal/impl/metadata/deserialization/Flags$EnumLiteFlagField"
+
+    const-string v0, "bitWidth"
+
+    const-string v1, "enumEntries"
+
+    filled-new-array {v1, p0, v0}, [Ljava/lang/Object;
+
+    move-result-object p0
+
+    const-string v0, "Argument for @NotNull parameter \'%s\' of %s.%s must not be null"
+
+    invoke-static {v0, p0}, Ljava/lang/String;->format(Ljava/lang/String;[Ljava/lang/Object;)Ljava/lang/String;
+
+    move-result-object p0
+
+    new-instance v0, Ljava/lang/IllegalArgumentException;
+
+    invoke-direct {v0, p0}, Ljava/lang/IllegalArgumentException;-><init>(Ljava/lang/String;)V
+
+    throw v0
+.end method
+
+.method public constructor <init>(I[Lkotlin/reflect/jvm/internal/impl/protobuf/Internal$EnumLite;)V
+    .registers 5
+    .annotation system Ldalvik/annotation/Signature;
+        value = {
+            "(I[TE;)V"
+        }
+    .end annotation
+
+    .line 280
+    invoke-static {p2}, Lkotlin/reflect/jvm/internal/impl/metadata/deserialization/Flags$EnumLiteFlagField;->bitWidth([Ljava/lang/Object;)I
+
+    move-result v0
+
+    const/4 v1, 0x0
+
+    invoke-direct {p0, p1, v0, v1}, Lkotlin/reflect/jvm/internal/impl/metadata/deserialization/Flags$FlagField;-><init>(IILkotlin/reflect/jvm/internal/impl/metadata/deserialization/Flags$1;)V
+
+    .line 281
+    iput-object p2, p0, Lkotlin/reflect/jvm/internal/impl/metadata/deserialization/Flags$EnumLiteFlagField;->values:[Lkotlin/reflect/jvm/internal/impl/protobuf/Internal$EnumLite;
+
+    return-void
+.end method
+
+.method private static bitWidth([Ljava/lang/Object;)I
+    .registers 5
+    .annotation system Ldalvik/annotation/Signature;
+        value = {
+            "<E:",
+            "Ljava/lang/Object;",
+            ">([TE;)I"
+        }
+    .end annotation
+
+    if-nez p0, :cond_6
+
+    const/4 v0, 0x0
+
+    invoke-static {v0}, Lkotlin/reflect/jvm/internal/impl/metadata/deserialization/Flags$EnumLiteFlagField;->$$$reportNull$$$0(I)V
+
+    .line 285
+    :cond_6
+    array-length v0, p0
+
+    const/4 v1, 0x1
+
+    sub-int/2addr v0, v1
+
+    if-nez v0, :cond_c
+
+    return v1
+
+    :cond_c
+    const/16 v2, 0x1f
+
+    :goto_e
+    if-ltz v2, :cond_1a
+
+    shl-int v3, v1, v2
+
+    and-int/2addr v3, v0
+
+    if-eqz v3, :cond_17
+
+    add-int/2addr v2, v1
+
+    return v2
+
+    :cond_17
+    add-int/lit8 v2, v2, -0x1
+
+    goto :goto_e
+
+    .line 290
+    :cond_1a
+    new-instance v0, Ljava/lang/IllegalStateException;
+
+    new-instance v1, Ljava/lang/StringBuilder;
+
+    const-string v2, "Empty enum: "
+
+    invoke-direct {v1, v2}, Ljava/lang/StringBuilder;-><init>(Ljava/lang/String;)V
+
+    invoke-virtual {p0}, Ljava/lang/Object;->getClass()Ljava/lang/Class;
+
+    move-result-object p0
+
+    invoke-virtual {v1, p0}, Ljava/lang/StringBuilder;->append(Ljava/lang/Object;)Ljava/lang/StringBuilder;
+
+    move-result-object p0
+
+    invoke-virtual {p0}, Ljava/lang/StringBuilder;->toString()Ljava/lang/String;
+
+    move-result-object p0
+
+    invoke-direct {v0, p0}, Ljava/lang/IllegalStateException;-><init>(Ljava/lang/String;)V
+
+    throw v0
+.end method
+
+
+# virtual methods
+.method public bridge synthetic get(I)Ljava/lang/Object;
+    .registers 2
+
+    .line 276
+    invoke-virtual {p0, p1}, Lkotlin/reflect/jvm/internal/impl/metadata/deserialization/Flags$EnumLiteFlagField;->get(I)Lkotlin/reflect/jvm/internal/impl/protobuf/Internal$EnumLite;
+
+    move-result-object p1
+
+    return-object p1
+.end method
+
+.method public get(I)Lkotlin/reflect/jvm/internal/impl/protobuf/Internal$EnumLite;
+    .registers 7
+    .annotation system Ldalvik/annotation/Signature;
+        value = {
+            "(I)TE;"
+        }
+    .end annotation
+
+    .line 296
+    iget v0, p0, Lkotlin/reflect/jvm/internal/impl/metadata/deserialization/Flags$EnumLiteFlagField;->bitWidth:I
+
+    const/4 v1, 0x1
+
+    shl-int v0, v1, v0
+
+    sub-int/2addr v0, v1
+
+    .line 297
+    iget v1, p0, Lkotlin/reflect/jvm/internal/impl/metadata/deserialization/Flags$EnumLiteFlagField;->offset:I
+
+    shl-int/2addr v0, v1
+
+    and-int/2addr p1, v0
+
+    .line 298
+    iget v0, p0, Lkotlin/reflect/jvm/internal/impl/metadata/deserialization/Flags$EnumLiteFlagField;->offset:I
+
+    shr-int/2addr p1, v0
+
+    .line 299
+    iget-object v0, p0, Lkotlin/reflect/jvm/internal/impl/metadata/deserialization/Flags$EnumLiteFlagField;->values:[Lkotlin/reflect/jvm/internal/impl/protobuf/Internal$EnumLite;
+
+    array-length v1, v0
+
+    const/4 v2, 0x0
+
+    :goto_11
+    if-ge v2, v1, :cond_1f
+
+    aget-object v3, v0, v2
+
+    .line 300
+    invoke-interface {v3}, Lkotlin/reflect/jvm/internal/impl/protobuf/Internal$EnumLite;->getNumber()I
+
+    move-result v4
+
+    if-ne v4, p1, :cond_1c
+
+    return-object v3
+
+    :cond_1c
+    add-int/lit8 v2, v2, 0x1
+
+    goto :goto_11
+
+    :cond_1f
+    const/4 p1, 0x0
+
+    return-object p1
+.end method
+
+.method public bridge synthetic toFlags(Ljava/lang/Object;)I
+    .registers 2
+
+    .line 276
+    check-cast p1, Lkotlin/reflect/jvm/internal/impl/protobuf/Internal$EnumLite;
+
+    invoke-virtual {p0, p1}, Lkotlin/reflect/jvm/internal/impl/metadata/deserialization/Flags$EnumLiteFlagField;->toFlags(Lkotlin/reflect/jvm/internal/impl/protobuf/Internal$EnumLite;)I
+
+    move-result p1
+
+    return p1
+.end method
+
+.method public toFlags(Lkotlin/reflect/jvm/internal/impl/protobuf/Internal$EnumLite;)I
+    .registers 3
+    .annotation system Ldalvik/annotation/Signature;
+        value = {
+            "(TE;)I"
+        }
+    .end annotation
+
+    .line 309
+    invoke-interface {p1}, Lkotlin/reflect/jvm/internal/impl/protobuf/Internal$EnumLite;->getNumber()I
+
+    move-result p1
+
+    iget v0, p0, Lkotlin/reflect/jvm/internal/impl/metadata/deserialization/Flags$EnumLiteFlagField;->offset:I
+
+    shl-int/2addr p1, v0
+
+    return p1
+.end method

@@ -51,3 +51,16 @@ btproxy_http_get_auth_plain() {
   local token; token="${BTPROXY_SECRET:-${BTPROXY_TOKEN:-secret}}"
   curl -sS -H "X-BtProxy: $token" "$url"
 }
+
+btproxy_http_post_auth_json_plain() {
+  local url; url="$1"
+  local body; body="$2"
+  local token; token="${BTPROXY_SECRET:-${BTPROXY_TOKEN:-secret}}"
+  curl -sS -X POST -H "X-BtProxy: $token" -H "Content-Type: application/json" --data "$body" "$url"
+}
+
+btproxy_http_delete_auth_plain() {
+  local url; url="$1"
+  local token; token="${BTPROXY_SECRET:-${BTPROXY_TOKEN:-secret}}"
+  curl -sS -X DELETE -H "X-BtProxy: $token" "$url"
+}

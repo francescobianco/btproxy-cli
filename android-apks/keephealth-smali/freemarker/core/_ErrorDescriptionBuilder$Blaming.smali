@@ -1,0 +1,40 @@
+.class Lfreemarker/core/_ErrorDescriptionBuilder$Blaming;
+.super Ljava/lang/Object;
+.source "_ErrorDescriptionBuilder.java"
+
+
+# annotations
+.annotation system Ldalvik/annotation/EnclosingClass;
+    value = Lfreemarker/core/_ErrorDescriptionBuilder;
+.end annotation
+
+.annotation system Ldalvik/annotation/InnerClass;
+    accessFlags = 0xa
+    name = "Blaming"
+.end annotation
+
+
+# instance fields
+.field blamer:Lfreemarker/core/TemplateObject;
+
+.field roleOfblamed:Lfreemarker/core/ParameterRole;
+
+
+# direct methods
+.method private constructor <init>()V
+    .registers 1
+
+    .line 355
+    invoke-direct {p0}, Ljava/lang/Object;-><init>()V
+
+    return-void
+.end method
+
+.method synthetic constructor <init>(Lfreemarker/core/_ErrorDescriptionBuilder$1;)V
+    .registers 2
+
+    .line 355
+    invoke-direct {p0}, Lfreemarker/core/_ErrorDescriptionBuilder$Blaming;-><init>()V
+
+    return-void
+.end method
