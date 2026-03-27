@@ -32,6 +32,14 @@ main() {
     list)
       btproxy_http_get "$base_url/devices" "$debug"
       ;;
+    characteristics)
+      local mac; mac="${1:-}"
+      if [ -z "$mac" ]; then
+        echo "Usage: btproxy characteristics <mac>" >&2
+        exit 1
+      fi
+      btproxy_http_get_auth "$base_url/devices/$mac/characteristics" "$debug"
+      ;;
     read)
       local mac; mac="${1:-}"
       local uuid; uuid="${2:-}"
@@ -67,6 +75,7 @@ main() {
       echo "  health                        Health status and connected device count"
       echo "  status                        Server status with connected MAC addresses"
       echo "  list                          List connected BLE device MAC addresses"
+      echo "  characteristics <mac>         List GATT services and characteristics"
       echo "  read  <mac> <uuid>            Read a BLE GATT characteristic"
       echo "  write <mac> <uuid> <hex...>   Write a BLE GATT characteristic"
       echo ""
@@ -81,6 +90,7 @@ main() {
       echo ""
       echo "Examples:"
       echo "  btproxy list"
+      echo "  btproxy characteristics AA:BB:CC:DD:EE:FF"
       echo "  btproxy read AA:BB:CC:DD:EE:FF 00002a37-0000-1000-8000-00805f9b34fb"
       echo "  btproxy write AA:BB:CC:DD:EE:FF 00002a37-0000-1000-8000-00805f9b34fb A0 81 D0"
       ;;
